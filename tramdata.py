@@ -1,6 +1,14 @@
 import json
 import csv
+import sys
 from haversine import haversine, Unit
+
+
+STOP_FILE = './data/tramstops.json'
+LINE_FILE = './data/tramlines.txt'
+
+TRAM_FILE = './tramnetwork.json'
+
 
 def build_tram_stops(jsonobject):
     stop_dict = {}
@@ -32,12 +40,7 @@ def build_tram_lines(lines):
                         tram_line = txt_list[0][0]
                     line_dict.setdefault(tram_line, [])
                 else:
-                    if len(txt_list) == 3:
-                        cur_name = txt_list[0] + " " + txt_list[1]
-                    elif len(txt_list) == 4:
-                        cur_name = txt_list[0] + " " + txt_list[1] + " " + txt_list[2]
-                    else:
-                        cur_name = txt_list[0]
+                    cur_name = " ".join(txt_list[:-1])              #sorted()
                     time = int(txt_list[-1][-2:])
                     line_dict[tram_line].append(cur_name)
                     if pre_name in time_dict:
@@ -51,20 +54,25 @@ def build_tram_lines(lines):
 
 def build_tram_network(stopfile, linefile):
     data = {"stops": build_tram_stops(stopfile), "lines": build_tram_lines(linefile)[0], "times":build_tram_lines(linefile)[1]}
-    with open("tramnetwork.json", "w", encoding="utf-8") as outfile:
+    with open(TRAM_FILE, encoding="utf-8") as outfile:
         json.dump(data, outfile, indent=2, ensure_ascii=False)
 
 
-
 def lines_via_stop(linedict, stop):
+    list = []
     for tram_lines in linedict:
         if stop in linedict[tram_lines]:
-            print(tram_lines)
+            list.append(tram_lines)
+    return list
+
 
 def lines_between_stops(linedict, stop1, stop2):
+    list = []
     for tram_lines in linedict:
         if stop1 in linedict[tram_lines] and stop2 in linedict[tram_lines]:
-            print(tram_lines)
+            list.append(tram_lines)
+    return list
+
 
 def time_between_stops(linedict, timedict, line, stop1, stop2):
     if stop1 in linedict[line] and stop2 in linedict[line]:
@@ -96,63 +104,55 @@ def distance_between_stops(stopdict, stop1, stop2):
 def dialogue(tramfile):
     with open(tramfile, "r", encoding="utf-8") as outfile:
         data = json.load(outfile)
-    check = True
     while True:
-        query = input()
+        query = input("Vafan vill du? ")
         if query == "quit":
-            check = False
-        answer_query(data, query)
-        
-
+            break
+        print(answer_query(data, query))
+        return answer_query(data, query)
 
 
 def answer_query(tramdict, query):
     q_split = query.split()
-    if q_split[0] == "via":
-        stop = " ".join(q_split[1:])
-        return lines_via_stop(tramdict["lines"], stop)
+    try:
+        if q_split[0] == "via":
+            stop = " ".join(q_split[1:])
+            return lines_via_stop(tramdict["lines"], stop)
 
-    elif q_split[0] == "between":
-        pass
+        elif q_split[0] == "between":
+            and_index = q_split.index("and")
+            stop1 = " ".join(q_split[1:and_index])
+            stop2 = " ".join(q_split[and_index + 1:])
+            return lines_between_stops(tramdict["lines"], stop1, stop2) 
 
-    elif q_split[0] == "time":
-        pass
+        elif q_split[0] == "time":
+            to_index = q_split.index("to")
+            line = q_split[2]
+            stop1 = " ".join(q_split[4:to_index])
+            stop2 = " ".join(q_split[to_index + 1:])
+            return time_between_stops(tramdict["lines"], tramdict["times"], line, stop1, stop2)
 
-    elif q_split[0] == "distance":
-        pass
-
-    elif q_split[0] == "quit":
-        return False
-
+        elif q_split[0] == "distance":
+            to_index = q_split.index("to")
+            stop1 = " ".join(q_split[2:to_index])
+            stop2 = " ".join(q_split[to_index + 1:])
+            return distance_between_stops(tramdict["stops"], stop1, stop2)
+        
+        else:
+            return print("sorry, try again")
+    except:
+        return print("unknown arguments")
     
-
-dialogue("tramnetwork.json")
-
 """
-a = ["1","2","3","4","5"]
-b = " ".join(a)
-print(b)
+with open(TRAM_FILE, "r", encoding="utf-8") as outfile:
+        data = json.load(outfile)
+a = answer_query(data, "via Botaniska Trädgården")
+print(a)
 """
 
+if __name__ == '__main__':
+    if sys.argv[1:] == ['init']:
+        build_tram_network(STOP_FILE, LINE_FILE)
+    else:
+        dialogue(TRAM_FILE)	
 
-
-#lines_via_stop(build_tram_lines("tramlines.txt")[0], "Opaltorget")
-
-#lines_between_stops(build_tram_lines("tramlines.txt")[0], "Chalmers","Marklandsgatan")
-
-print(time_between_stops(build_tram_lines("tramlines.txt")[0], build_tram_lines("tramlines.txt")[1], "7", "Briljantgatan", "Chalmers"))
-
-#print(distance_between_stops(build_tram_stops("tramstops.json"), "Opaltorget", "Komettorget"))
-
-build_tram_network("tramstops.json", "tramlines.txt")
-
-#print(build_tram_stops("tramstops.json"))
-
-#print(build_tram_lines("tramlines.txt"))
-
-
-#print(build_tram_stops("tramstops.json"))
-
-    #data = {: row for row in rows} 
-
-#print(data)
