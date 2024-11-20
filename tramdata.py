@@ -64,6 +64,8 @@ def lines_via_stop(linedict, stop):
     for tram_lines in linedict:
         if stop in linedict[tram_lines]:
             list.append(tram_lines)
+    if list == []:
+        return "sorry, try again"
     return list
 
 
@@ -72,28 +74,33 @@ def lines_between_stops(linedict, stop1, stop2):
     for tram_lines in linedict:
         if stop1 in linedict[tram_lines] and stop2 in linedict[tram_lines]:
             list.append(tram_lines)
+    if list == []:
+        return "sorry, try again"
     return list
 
 
 def time_between_stops(linedict, timedict, line, stop1, stop2):
-    if stop1 in linedict[line] and stop2 in linedict[line]:
-        if linedict[line].index(stop2) < linedict[line].index(stop1):
-            stop1, stop2 = stop2, stop1
-        stop1_index = linedict[line].index(stop1)
-        current_stop = linedict[line][stop1_index]
-        next_stop = linedict[line][stop1_index + 1]
-        time = 0
-        while current_stop != stop2:
-            if current_stop in timedict and next_stop in timedict[current_stop]:
-                time += timedict[current_stop][next_stop]
-            else:
-                time += timedict[next_stop][current_stop]
-            current_stop = next_stop
-            if len(linedict[line]) > linedict[line].index(next_stop) + 1:
-                next_stop = linedict[line][linedict[line].index(next_stop) + 1]
-        return time
-    else:
-        print("The stops does not exist in the line given")
+    try:
+        if stop1 in linedict[line] and stop2 in linedict[line]:
+            if linedict[line].index(stop2) < linedict[line].index(stop1):
+                stop1, stop2 = stop2, stop1
+            stop1_index = linedict[line].index(stop1)
+            current_stop = linedict[line][stop1_index]
+            next_stop = linedict[line][stop1_index + 1]
+            time = 0
+            while current_stop != stop2:
+                if current_stop in timedict and next_stop in timedict[current_stop]:
+                    time += timedict[current_stop][next_stop]
+                else:
+                    time += timedict[next_stop][current_stop]
+                current_stop = next_stop
+                if len(linedict[line]) > linedict[line].index(next_stop) + 1:
+                    next_stop = linedict[line][linedict[line].index(next_stop) + 1]
+            return time
+        else:
+            print("The stops does not exist in the line given")
+    except:
+        return "sotty, try again"
 
 
 def distance_between_stops(stopdict, stop1, stop2):
@@ -110,7 +117,7 @@ def dialogue(tramfile):
         if query == "quit":
             break
         print(answer_query(data, query))
-        #return answer_query(data, query)
+        return answer_query(data, query)
 
 
 def answer_query(tramdict, query):
@@ -140,9 +147,10 @@ def answer_query(tramdict, query):
             return distance_between_stops(tramdict["stops"], stop1, stop2)
         
         else:
-            return print("sorry, try again")
+            return "sorry, try again"
     except:
-        return print("unknown arguments")
+        return "unknown arguments"
+
 
 if __name__ == '__main__':
     if sys.argv[1:] == ['init']:
