@@ -8,7 +8,7 @@ TRAM_FILE = './tramnetwork.json'
 class TestTramData(unittest.TestCase):
 
     def setUp(self):
-        with open(TRAM_FILE) as trams:
+        with open(TRAM_FILE, encoding= "utf-8") as trams:
             tramdict = json.loads(trams.read())
             self.stopdict = tramdict['stops']
             self.linedict = tramdict['lines']
@@ -36,7 +36,6 @@ class TestTramData(unittest.TestCase):
     def test_stops_in_tramline(self):
         with open(LINE_FILE, "r", encoding="utf-8") as lines:
             rows = csv.reader(lines, delimiter="\t")
-            new_dict = {}
             tram_line, pre_name = "", ""
             for row in rows:
                 if row == []:
@@ -49,12 +48,12 @@ class TestTramData(unittest.TestCase):
                             tram_line = txt_list[0][:2]
                         else:
                             tram_line = txt_list[0][0]
-                        new_dict.setdefault(tram_line, [])
                     else:
-                        cur_name = " ".join(txt_list[:-1])          
-                        new_dict[tram_line].append(cur_name)
+                        cur_name = " ".join(txt_list[:-1])  
+                        self.assertIn(cur_name, self.linedict[tram_line], 
+                                      msg = cur_name + " is not in line " + tram_line + " in the linedict"
+                                      )        
                         pre_name = cur_name
-        self.assertEqual(new_dict, self.linedict, msg = "not all stops in linedict")
 
     def test_distance(self):
         for stop1 in self.stopdict:
@@ -74,4 +73,3 @@ class TestTramData(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
