@@ -40,7 +40,27 @@ class TestTramData(unittest.TestCase):
         self.assertEqual(list_of_lines, real_list_of_lines, msg = "All lines are not in the linedict")
 
     def test_stops_in_tramline(self):
-        pass
+        with open(LINE_FILE, "r", encoding="utf-8") as lines:
+            rows = csv.reader(lines, delimiter="\t")
+            new_dict = {}
+            tram_line, pre_name = "", ""
+            for row in rows:
+                if row == []:
+                    pre_name 
+                else:
+                    txt_list = row[0].split()
+                    if len(txt_list) == 1:
+                        n = 0
+                        if txt_list[0][n+1].isdigit():
+                            tram_line = txt_list[0][:2]
+                        else:
+                            tram_line = txt_list[0][0]
+                        new_dict.setdefault(tram_line, [])
+                    else:
+                        cur_name = " ".join(txt_list[:-1])          
+                        new_dict[tram_line].append(cur_name)
+                        pre_name = cur_name
+        self.assertEqual(new_dict, self.linedict, msg = "not all stops in linedict")
 
     def test_distance(self):
         for stop1 in self.stopdict:
