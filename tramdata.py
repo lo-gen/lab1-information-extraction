@@ -43,10 +43,11 @@ def build_tram_lines(lines):
                     cur_name = " ".join(txt_list[:-1])              #sorted()
                     time = int(txt_list[-1][-2:])
                     line_dict[tram_line].append(cur_name)
-                    if pre_name in time_dict:
-                        time_dict[pre_name][cur_name] = time - pre_time
+                    sort1, sort2 = sorted((cur_name, pre_name))
+                    if sort1 in time_dict:
+                        time_dict[sort1][sort2] = time - pre_time
                     else:
-                        time_dict.setdefault(pre_name, {cur_name: time - pre_time})
+                        time_dict.setdefault(sort1, {sort2: time - pre_time})
                     pre_name = cur_name
                     pre_time = time
     return line_dict, time_dict
@@ -54,7 +55,7 @@ def build_tram_lines(lines):
 
 def build_tram_network(stopfile, linefile):
     data = {"stops": build_tram_stops(stopfile), "lines": build_tram_lines(linefile)[0], "times":build_tram_lines(linefile)[1]}
-    with open(TRAM_FILE, encoding="utf-8") as outfile:
+    with open(TRAM_FILE, "w", encoding="utf-8") as outfile:
         json.dump(data, outfile, indent=2, ensure_ascii=False)
 
 
@@ -83,7 +84,7 @@ def time_between_stops(linedict, timedict, line, stop1, stop2):
         next_stop = linedict[line][stop1_index + 1]
         time = 0
         while current_stop != stop2:
-            if current_stop in timedict and timedict[current_stop] != {}:
+            if current_stop in timedict and next_stop in timedict[current_stop]:
                 time += timedict[current_stop][next_stop]
             else:
                 time += timedict[next_stop][current_stop]
@@ -109,7 +110,7 @@ def dialogue(tramfile):
         if query == "quit":
             break
         print(answer_query(data, query))
-        return answer_query(data, query)
+        #return answer_query(data, query)
 
 
 def answer_query(tramdict, query):
@@ -142,13 +143,6 @@ def answer_query(tramdict, query):
             return print("sorry, try again")
     except:
         return print("unknown arguments")
-    
-"""
-with open(TRAM_FILE, "r", encoding="utf-8") as outfile:
-        data = json.load(outfile)
-a = answer_query(data, "via Botaniska Trädgården")
-print(a)
-"""
 
 if __name__ == '__main__':
     if sys.argv[1:] == ['init']:
@@ -156,3 +150,5 @@ if __name__ == '__main__':
     else:
         dialogue(TRAM_FILE)	
 
+
+#build_tram_network(STOP_FILE, LINE_FILE)
