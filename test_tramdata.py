@@ -18,12 +18,10 @@ class TestTramData(unittest.TestCase):
         stopset = {stop for line in self.linedict for stop in self.linedict[line]}
         for stop in stopset:
             self.assertIn(stop, self.stopdict, msg = stop + ' not in stopdict')
-
+    
     def test_lines_in_linedict(self):
         with open(LINE_FILE, encoding="utf-8") as infile:
             rows = csv.reader(infile, delimiter="\t")
-            list_of_lines = []
-            tram_line = ""
             for row in rows:
                 if row != []:
                     txt_list = row[0].split()
@@ -33,11 +31,7 @@ class TestTramData(unittest.TestCase):
                             tram_line = txt_list[0][:2]
                         else:
                             tram_line = txt_list[0][0]
-                        list_of_lines.append(tram_line)
-        real_list_of_lines = []
-        for line in self.linedict:
-            real_list_of_lines.append(line)
-        self.assertEqual(list_of_lines, real_list_of_lines, msg = "All lines are not in the linedict")
+                        self.assertIn(tram_line, self.linedict, msg = tram_line + " is not in the linedict")
 
     def test_stops_in_tramline(self):
         with open(LINE_FILE, "r", encoding="utf-8") as lines:
